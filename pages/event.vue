@@ -386,22 +386,18 @@ export default {
 
     registerMembers: async function(event) {
       var chosen = "";
-      for (var i = 0; i < this.selected.length; i++) {
-        //First delete the existing record, then insert a new one
-
-        var del_rows = await axios({
+      var del_rows = await axios({
           method:"POST",
           url:this.graphql_url,
           data:{
             query: `
-            mutation delete_event_member($event: Int!, $member: Int!, $author: Int!) {
-                  delete_Event_Member(where: {_and: [{EventId: {_eq: $event}}, {MemberId: {_eq: $member}}, {AuthorId: {_eq: $author}}]}){
+            mutation delete_event_member($event: Int!, $author: Int!) {
+                  delete_Event_Member(where: {_and: [{EventId: {_eq: $event}}, {AuthorId: {_eq: $author}}]}){
                   affected_rows
                 }
               }`,
               variables: {
                 event:this.event.id,
-                member:this.selected[i].id,
                 author:this.authorId
               }
           },
@@ -413,7 +409,7 @@ export default {
         .catch(err => {
           console.error(err)
         });
-
+      for (var i = 0; i < this.selected.length; i++) {
         await axios({
           method: "POST",
           url: this.graphql_url,
