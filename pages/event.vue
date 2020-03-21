@@ -158,6 +158,7 @@ axios.defaults.withCredentials = true;
 
 export default {
   asyncData() {
+    console.log(process.env);
     var graphql_url = process.env.HASURA_URL;
     var eventList = [];
     var event = {};
@@ -169,8 +170,8 @@ export default {
     var HTTPheaders = {
       "Content-Type": "application/json",
       "X-Hasura-User-Id": authorId,
-      "X-Hasura-Role": process.env.X-Hasura-Role,
-      "X-Hasura-Admin-Secret": process.env.X-Hasura-Admin-Secret,
+      "X-Hasura-Role": process.env.X_Hasura_Role,
+      "X-Hasura-Admin-Secret": process.env.X_Hasura_Admin_Secret,
     };
     var memberFields = [
       {key:"id",label:"id"},
