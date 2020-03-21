@@ -158,6 +158,7 @@ axios.defaults.withCredentials = true;
 
 export default {
   asyncData() {
+    var graphql_url = process.env.HASURA_URL;
     var eventList = [];
     var event = {};
     var memberList = [];
@@ -168,9 +169,8 @@ export default {
     var HTTPheaders = {
       "Content-Type": "application/json",
       "X-Hasura-User-Id": authorId,
-      "X-Hasura-Role": "user",
-      "X-Hasura-Admin-Secret": "jay!@10679",
-      "X-Hasura-Access-Key": "jay!@10679"
+      "X-Hasura-Role": process.env.X-Hasura-Role,
+      "X-Hasura-Admin-Secret": process.env.X-Hasura-Admin-Secret,
     };
     var memberFields = [
       {key:"id",label:"id"},
@@ -185,6 +185,7 @@ export default {
     var totalCost = 0;
 
     return {
+      graphql_url:graphql_url,
       eventList: eventList,
       memberList: memberList,
       selected: selected,
@@ -223,7 +224,7 @@ export default {
       try {
         var members = await axios({
           method: "POST",
-          url: "http://localhost:8080/v1/graphql/",
+          url: this.graphql_url,
           data: {
             query: `
                   {
@@ -251,7 +252,7 @@ export default {
       try {
         var result = await axios({
           method: "POST",
-          url: "http://localhost:8080/v1/graphql/",
+          url: this.graphql_url,
           data: {
             query: `
                   {
@@ -297,7 +298,7 @@ export default {
         this.$refs.memberTable.clearSelected();
         var res = await axios({
           method: "POST",
-          url: "http://localhost:8080/v1/graphql/",
+          url: this.graphql_url,
           data: {
             query: `
               query getSingleEvent($event:Int!){
@@ -336,7 +337,7 @@ export default {
 
         var registeredMembers = await axios({
           method: "POST",
-          url: "http://localhost:8080/v1/graphql/",
+          url: this.graphql_url,
           data: {
             query: `
               query getRegisteredMembers($event:Int!,$author:Int!) {
@@ -388,7 +389,7 @@ export default {
 
         var del_rows = await axios({
           method:"POST",
-          url:"http://localhost:8080/v1/graphql/",
+          url:this.graphql_url,
           data:{
             query: `
             mutation delete_event_member($event: Int!, $member: Int!, $author: Int!) {
@@ -413,7 +414,7 @@ export default {
 
         await axios({
           method: "POST",
-          url: "http://localhost:8080/v1/graphql/",
+          url: this.graphql_url,
           data: {
             query: `
               mutation insertEventMember($event:Int!,$member:Int!,$author:Int!){
