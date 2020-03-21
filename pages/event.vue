@@ -166,12 +166,13 @@ export default {
     var selected = [];
     var regMembers = [];
     var successAlert = false;
-    var authorId = 2;
+    var authorId = 1;
     var HTTPheaders = {
       "Content-Type": "application/json",
+      "Accept": "application/json",
       "X-Hasura-User-Id": authorId,
       "X-Hasura-Role": process.env.X_Hasura_Role,
-      "X-Hasura-Admin-Secret": process.env.X_Hasura_Admin_Secret,
+      "x-hasura-admin-secret": process.env.X_Hasura_Admin_Secret,
     };
     var memberFields = [
       {key:"id",label:"id"},
@@ -243,7 +244,7 @@ export default {
           headers: this.HTTPheaders
         });
       } catch (err) {
-        console.error(error);
+        console.error(err);
       }
       console.log(members);
 
