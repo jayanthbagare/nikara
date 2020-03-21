@@ -1,0 +1,23 @@
+{
+  "name": "hasura-app",
+  "version": "1.0.0",
+  "description": "My impressive Nuxt.js project",
+  "author": "Jayanth Bagare",
+  "private": true,
+  "scripts": {
+    "dev": "nuxt",
+    "build": "nuxt build",
+    "start": "nuxt start",
+    "generate": "nuxt generate"
+  },
+  "dependencies": {
+    "@nuxtjs/axios": "^5.3.6",
+    "bootstrap": "^4.4.1",
+    "bootstrap-vue": "^2.6.1",
+    "moment": "^2.24.0",
+    "nuxt": "^2.0.0",
+    "prettier": "^1.19.1",
+    "vue": "^2.6.11"
+  },
+  "devDependencies": {}
+}
