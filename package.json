@@ -1,26 +1,26 @@
 {
-  "name": "hasura-app",
-  "version": "1.0.0",
-  "description": "My impressive Nuxt.js project",
-  "author": "Jayanth Bagare",
-  "private": true,
-  "scripts": {
-    "dev": "nuxt",
-    "build": "nuxt build",
-    "start": "nuxt start",
-    "generate": "nuxt generate",
-    "heroku-postbuild": "npm run build"
-  },
-  "dependencies": {
-    "@nuxtjs/axios": "5.9.5",
-    "bootstrap": "4.4.1",
-    "bootstrap-vue": "2.7.0",
-    "moment": "2.24.0",
-    "nuxt": "2.12.0",
-    "prettier": "1.19.1",
-    "vue": "2.6.11"
-  },
-  "devDependencies": {
-    "prettier": "1.19.1"
-  }
+	"name": "hasura-app",
+	"version": "1.0.0",
+	"description": "My impressive Nuxt.js project",
+	"author": "Jayanth Bagare",
+	"private": true,
+	"scripts": {
+		"dev": "nuxt",
+		"build": "nuxt build",
+		"start": "nuxt start",
+		"generate": "nuxt generate",
+		"heroku-postbuild": "npm run build"
+	},
+	"dependencies": {
+		"@nuxtjs/axios": "5.9.6",
+		"bootstrap": "4.4.1",
+		"bootstrap-vue": "2.9.0",
+		"moment": "2.24.0",
+		"nuxt": "2.12.1",
+		"vue": "2.6.11"
+	},
+	"devDependencies": {
+		"@nuxtjs/vuetify": "^1.11.0"
+	},
+	"extension": {}
 }
