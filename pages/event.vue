@@ -1,6 +1,13 @@
 
 <template>
   <div class="container">
+    <b-alert
+      style="z-index:2000;"
+      v-model="successAlert"
+      variant="success"
+      dismissible
+    >{{successMessage}}</b-alert>
+
     <h2>Sharmalaya - Events</h2>
     <br>
     <br>
@@ -41,13 +48,7 @@
     <br>
     <br>
     <br>
-    <div>
-      <b-alert
-        v-model="successAlert"
-        variant="success"
-        dismissible
-      >Sucessfully Registered Selected Members to the Event!</b-alert>
-    </div>
+    <div></div>
     <div>
       <div>
         <template v-if="event.id > 0">
@@ -108,50 +109,47 @@
     <b-modal
       id="addMemberModal"
       centered
-      ok-only
       ok-variant="outline-secondary"
-      ok-title="Add Member"
+      ok-only
+      ok-title="Close Form"
     >
       <template>
-        <b-container fluid>
-          <b-row>
-            <b-col sm="4">
-              <label for="txtName">Name</label>
-            </b-col>
-            <b-col sm="8">
-              <b-form-input type="text" id="txtName"></b-form-input>
-            </b-col>
-          </b-row>
-          <br>
-          <b-row>
-            <b-col sm="4">
-              <label for="txtPhone">Phone</label>
-            </b-col>
-            <b-col sm="8">
-              <b-form-input type="tel" id="txtPhone"></b-form-input>
-            </b-col>
-          </b-row>
-          <br>
-          <b-row>
-            <b-col sm="4">
-              <b-form-group label="Gender">
-                <b-col sm="8">
-                  <b-form-radio v-model="selected" name="radGender" value="F">Female</b-form-radio>
-                  <b-form-radio v-model="selected" name="radGender" value="M">Male</b-form-radio>
-                </b-col>
-              </b-form-group>
-            </b-col>
-          </b-row>
-          <br>
-          <b-row>
-            <b-col sm="4">
-              <label for="datDOB">Date of Birth</label>
-            </b-col>
-            <b-col sm="8">
-              <b-form-input type="date" id="datDOB"></b-form-input>
-            </b-col>
-          </b-row>
-        </b-container>
+        <div>
+          <b-form v-if="show">
+            <b-form-group id="input-group1" label="Name" label-for="input-1">
+              <b-form-input
+                id="input-1"
+                v-model="memberForm.name"
+                type="text"
+                required
+                placeholder="Enter your Full Name"
+              ></b-form-input>
+            </b-form-group>
+
+            <b-form-group id="input-group2" label="Date of Birth" label-for="input-2">
+              <b-form-datepicker id="input-2" v-model="memberForm.dob" variant="secondary" required></b-form-datepicker>
+            </b-form-group>
+
+            <b-form-group label="Gender">
+              <b-form-radio v-model="memberForm.gender" value="1">Female</b-form-radio>
+              <b-form-radio v-model="memberForm.gender" value="2">Male</b-form-radio>
+            </b-form-group>
+          </b-form>
+          <b-form-group id="input-group4" label="Mobile" label-for="input-4">
+            <b-form-input
+              id="input-4"
+              v-model="memberForm.phone"
+              type="number"
+              placeholder="Enter your Mobile Number"
+            ></b-form-input>
+          </b-form-group>
+          <b-button
+            type="submit"
+            class="float-right"
+            variant="outline-secondary"
+            v-on:click="onSubmit"
+          >Submit</b-button>
+        </div>
       </template>
     </b-modal>
   </div>
@@ -166,83 +164,155 @@ axios.defaults.xsrfCookieName = "csrftoken";
 axios.defaults.withCredentials = true;
 
 export default {
-	asyncData() {
-		console.log(process.env);
-		var graphql_url = process.env.HASURA_URL;
-		var eventList = [];
-		var event = {};
-		var memberList = [];
-		var selected = [];
-		var regMembers = [];
-		var successAlert = false;
-		var authorId = 1;
-		var HTTPheaders = {
-			"Content-Type": "application/json",
-			Accept: "application/json",
-			"X-Hasura-User-Id": authorId,
-			"X-Hasura-Role": process.env.X_Hasura_Role,
-			"x-hasura-admin-secret": process.env.X_Hasura_Admin_Secret
-		};
-		var memberFields = [
-			//{ key: "id", label: "id" },
-			{ key: "Selected", label: "Reg" },
-			{ key: "Name", label: "Name" },
-			{ key: "Gender", label: "Gender" },
-			{ key: "Date_Of_Birth", label: "Age" },
-			{ key: "Phone", label: "Phone" }
-		];
+  asyncData() {
+    console.log(process.env);
+    var graphql_url = process.env.HASURA_URL;
+    var eventList = [];
+    var event = {};
+    var memberList = [];
+    var selected = [];
+    var regMembers = [];
+    var successAlert = false;
+    var authorId = 1;
+    var show = true;
+    var successMessage = "";
+    var memberForm = {
+      name: "",
+      email: "",
+      gender: "",
+      phone: "",
+      dob: ""
+    };
+    var HTTPheaders = {
+      "Content-Type": "application/json",
+      Accept: "application/json",
+      "X-Hasura-User-Id": authorId,
+      "X-Hasura-Role": process.env.X_Hasura_Role,
+      "x-hasura-admin-secret": process.env.X_Hasura_Admin_Secret
+    };
+    var memberFields = [
+      //{ key: "id", label: "id" },
+      { key: "Selected", label: "Reg" },
+      { key: "Name", label: "Name" },
+      { key: "Gender", label: "Gender" },
+      { key: "Age", label: "Age" },
+      { key: "Phone", label: "Phone" }
+    ];
 
-		var optionSelected = null;
-		var options = [{ value: null, text: "Choose an Event to Register to" }];
-		var totalCost = 0;
+    var optionSelected = null;
+    var options = [{ value: null, text: "Choose an Event to Register to" }];
+    var totalCost = 0;
 
-		return {
-			graphql_url: graphql_url,
-			eventList: eventList,
-			memberList: memberList,
-			selected: selected,
-			fields: memberFields,
-			successAlert: successAlert,
-			optionSelected: optionSelected,
-			options: options,
-			event: event,
-			totalCost: totalCost,
-			authorId: authorId,
-			HTTPheaders: HTTPheaders,
-			regMembers: regMembers
-		};
-	},
-	async created() {
-		this.getAllEvents();
-		this.getAllMyMembers();
-	},
-	methods: {
-		calculateAge: function(date_of_birth) {
-			var age = moment().diff(date_of_birth, "years");
-			return age;
-		},
-		calculateTotalCost: function(selectedMemberArray) {
-			this.totalCost = 0;
-			var age = 0;
-			for (var j = 0; j < selectedMemberArray.length; j++) {
-				age = moment().diff(selectedMemberArray[j].Date_Of_Birth, "years");
+    return {
+      graphql_url: graphql_url,
+      eventList: eventList,
+      memberList: memberList,
+      selected: selected,
+      fields: memberFields,
+      successAlert: successAlert,
+      optionSelected: optionSelected,
+      options: options,
+      event: event,
+      totalCost: totalCost,
+      authorId: authorId,
+      HTTPheaders: HTTPheaders,
+      regMembers: regMembers,
+      memberForm: memberForm,
+      show: show,
+      successMessage: successMessage
+    };
+  },
+  async created() {
+    this.getAllEvents();
+    this.getAllMyMembers();
+  },
+  methods: {
+    onSubmit: async function(evt) {
+      evt.preventDefault();
+      if (this.memberForm.phone === "") {
+        this.memberForm.phone = null;
+      }
 
-				if (age < 12) {
-					this.totalCost += this.event.cost_child;
-				} else if (age == NaN) {
-					this.totalCost += this.event.cost_adult;
-				} else {
-					this.totalCost += this.event.cost_adult;
-				}
-			}
-		},
-		getAllMyMembers: async function() {
-			try {
-				var members = await axios({
-					method: "POST",
-					url: this.graphql_url,
-					data: {
-						query: `
+      await axios({
+        method: "POST",
+        url: this.graphql_url,
+        data: {
+          query: `
+              mutation upsert_members($name:String!,$gender:Int!,$dob:date!,$phone:numeric,$author:Int!) {
+                insert_Members(objects: [{
+                              Name:$name,
+                              Gender:$gender,
+                              Date_Of_Birth:$dob,
+                              Phone:$phone,
+                              author:$author
+                              }])
+                              {
+                                affected_rows
+                              }
+                            }`,
+          variables: {
+            name: this.memberForm.name,
+            gender: this.memberForm.gender,
+            dob: this.memberForm.dob,
+            phone: this.memberForm.phone,
+            author: this.authorId
+          }
+        },
+        headers: this.HTTPheaders
+      })
+        .then(res => {
+          //make an object and update the member list
+          var tmp_member = {
+            Name: this.memberForm.name,
+            Gender: this.memberForm.gender,
+            Date_Of_Birth: this.memberForm.dob,
+            Phone: this.memberForm.phone,
+            Age: this.calculateAge(this.memberForm.dob)
+          };
+          this.memberList.push(tmp_member);
+          tmp_member = undefined;
+
+          //Clear the form
+          this.memberForm.name = undefined;
+          this.memberForm.gender = undefined;
+          this.memberForm.dob = undefined;
+          this.memberForm.phone = undefined;
+
+          //Hide the modal
+          this.$bvModal.hide("addMemberModal");
+          // show the alert for success message.
+          this.successMessage = "Saved the Member successfully!!";
+          this.successAlert = true;
+          //console.info(res);
+        })
+        .catch(err => console.error(err));
+    },
+    calculateAge: function(date_of_birth) {
+      var age = moment().diff(date_of_birth, "years");
+      return age;
+    },
+    calculateTotalCost: function(selectedMemberArray) {
+      this.totalCost = 0;
+      var age = 0;
+      for (var j = 0; j < selectedMemberArray.length; j++) {
+        age = moment().diff(selectedMemberArray[j].Date_Of_Birth, "years");
+
+        if (age < 12) {
+          this.totalCost += this.event.cost_child;
+        } else if (age == NaN) {
+          this.totalCost += this.event.cost_adult;
+        } else {
+          this.totalCost += this.event.cost_adult;
+        }
+      }
+    },
+    getAllMyMembers: async function() {
+      try {
+        var members = await axios({
+          method: "POST",
+          url: this.graphql_url,
+          data: {
+            query: `
                   {
                   Members
                     {
@@ -254,30 +324,30 @@ export default {
                     }
                   }
                 `
-					},
-					headers: this.HTTPheaders
-				});
-			} catch (err) {
-				console.error(err);
-			}
-			this.memberList = members.data.data.Members;
+          },
+          headers: this.HTTPheaders
+        });
+      } catch (err) {
+        console.error(err);
+      }
+      this.memberList = members.data.data.Members;
 
-			for (var z = 0; z < this.memberList.length; z++) {
-				console.log("Inside for");
-				this.memberList[z].Date_Of_Birth = moment().diff(
-					this.memberList[z].Date_Of_Birth,
-					"years"
-				);
-			}
-			console.log(this.memberList);
-		},
-		getAllEvents: async function() {
-			try {
-				var result = await axios({
-					method: "POST",
-					url: this.graphql_url,
-					data: {
-						query: `
+      for (var z = 0; z < this.memberList.length; z++) {
+        console.log("Inside for");
+        this.memberList[z].Age = moment().diff(
+          this.memberList[z].Date_Of_Birth,
+          "years"
+        );
+      }
+      console.log(this.memberList);
+    },
+    getAllEvents: async function() {
+      try {
+        var result = await axios({
+          method: "POST",
+          url: this.graphql_url,
+          data: {
+            query: `
                   {
                   Event
                     {
@@ -287,43 +357,43 @@ export default {
                     }
                   }
                 `
-					},
-					headers: this.HTTPheaders
-				});
-				//this.people = result.data.data.people;
-			} catch (error) {
-				console.error(error);
-			}
+          },
+          headers: this.HTTPheaders
+        });
+        //this.people = result.data.data.people;
+      } catch (error) {
+        console.error(error);
+      }
 
-			this.eventList = result.data.data.Event;
+      this.eventList = result.data.data.Event;
 
-			for (var m = 0; m < this.eventList.length; m++) {
-				var optionsText =
-					this.eventList[m].title +
-					"-" +
-					moment(this.eventList[m].startDatetime).format(
-						"ddd, MMM Do YYYY, h:mm:ss a"
-					);
+      for (var m = 0; m < this.eventList.length; m++) {
+        var optionsText =
+          this.eventList[m].title +
+          "-" +
+          moment(this.eventList[m].startDatetime).format(
+            "ddd, MMM Do YYYY, h:mm:ss a"
+          );
 
-				var ops = {
-					value: this.eventList[m].id,
-					text: optionsText
-				};
-				this.options.push(ops);
-			}
-		},
-		returnCurrentEventId: function() {
-			return this.event.id;
-		},
-		processSelectedEvent: async function(args) {
-			if (args != null) {
-				this.registeredMembers = [];
-				this.$refs.memberTable.clearSelected();
-				var res = await axios({
-					method: "POST",
-					url: this.graphql_url,
-					data: {
-						query: `
+        var ops = {
+          value: this.eventList[m].id,
+          text: optionsText
+        };
+        this.options.push(ops);
+      }
+    },
+    returnCurrentEventId: function() {
+      return this.event.id;
+    },
+    processSelectedEvent: async function(args) {
+      if (args != null) {
+        this.registeredMembers = [];
+        this.$refs.memberTable.clearSelected();
+        var res = await axios({
+          method: "POST",
+          url: this.graphql_url,
+          data: {
+            query: `
               query getSingleEvent($event:Int!){
                 Event_by_pk(id:$event){
                     id
@@ -337,32 +407,32 @@ export default {
                     remarks
                 }
             }`,
-						variables: {
-							event: args
-						}
-					},
-					headers: this.HTTPheaders
-				})
-					.then(res => {
-						this.event = res.data.data.Event_by_pk;
-						console.info(res);
+            variables: {
+              event: args
+            }
+          },
+          headers: this.HTTPheaders
+        })
+          .then(res => {
+            this.event = res.data.data.Event_by_pk;
+            console.info(res);
 
-						this.event.startdatetime = moment(this.event.startdatetime).format(
-							"ddd, MMM Do YYYY, h:mm:ss a"
-						);
-						if (this.event.enddatetime != null) {
-							this.event.enddatetime = moment(this.event.enddatetime).format(
-								"ddd, MMM Do YYYY, h:mm:ss a"
-							);
-						}
-					})
-					.catch(err => console.error(err));
+            this.event.startdatetime = moment(this.event.startdatetime).format(
+              "ddd, MMM Do YYYY, h:mm:ss a"
+            );
+            if (this.event.enddatetime != null) {
+              this.event.enddatetime = moment(this.event.enddatetime).format(
+                "ddd, MMM Do YYYY, h:mm:ss a"
+              );
+            }
+          })
+          .catch(err => console.error(err));
 
-				var registeredMembers = await axios({
-					method: "POST",
-					url: this.graphql_url,
-					data: {
-						query: `
+        var registeredMembers = await axios({
+          method: "POST",
+          url: this.graphql_url,
+          data: {
+            query: `
               query getRegisteredMembers($event:Int!,$author:Int!) {
                   Event_Member(
                     where: {
@@ -376,90 +446,90 @@ export default {
                       MemberId
                     }
                   }`,
-						variables: {
-							event: args,
-							author: this.authorId
-						}
-					},
-					headers: this.HTTPheaders
-				})
-					.then(res => {
-						this.regMembers = res.data.data.Event_Member;
-						for (var m = 0; m < this.regMembers.length; m++) {
-							for (var n = 0; n < this.$refs.memberTable.items.length; n++) {
-								if (
-									this.$refs.memberTable.items[n].id ==
-									this.regMembers[m].MemberId
-								) {
-									this.$refs.memberTable.selectRow(n);
-								}
-							}
-							this.selected.push(this.regMembers[m].MemberId);
-						}
+            variables: {
+              event: args,
+              author: this.authorId
+            }
+          },
+          headers: this.HTTPheaders
+        })
+          .then(res => {
+            this.regMembers = res.data.data.Event_Member;
+            for (var m = 0; m < this.regMembers.length; m++) {
+              for (var n = 0; n < this.$refs.memberTable.items.length; n++) {
+                if (
+                  this.$refs.memberTable.items[n].id ==
+                  this.regMembers[m].MemberId
+                ) {
+                  this.$refs.memberTable.selectRow(n);
+                }
+              }
+              this.selected.push(this.regMembers[m].MemberId);
+            }
 
-						console.info(res.data.data.Event_Member);
-					})
-					.catch(err => console.error(err));
-			}
-		},
-		onRowSelected(items) {
-			this.calculateTotalCost(items);
-			this.selected = items;
-		},
+            console.info(res.data.data.Event_Member);
+          })
+          .catch(err => console.error(err));
+      }
+    },
+    onRowSelected(items) {
+      this.calculateTotalCost(items);
+      this.selected = items;
+    },
 
-		registerMembers: async function(event) {
-			var chosen = "";
-			var del_rows = await axios({
-				method: "POST",
-				url: this.graphql_url,
-				data: {
-					query: `
+    registerMembers: async function(event) {
+      var chosen = "";
+      var del_rows = await axios({
+        method: "POST",
+        url: this.graphql_url,
+        data: {
+          query: `
             mutation delete_event_member($event: Int!, $author: Int!) {
                   delete_Event_Member(where: {_and: [{EventId: {_eq: $event}}, {AuthorId: {_eq: $author}}]}){
                   affected_rows
                 }
               }`,
-					variables: {
-						event: this.event.id,
-						author: this.authorId
-					}
-				},
-				headers: this.HTTPheaders
-			})
-				.then(res => {
-					console.info(res);
-				})
-				.catch(err => {
-					console.error(err);
-				});
-			for (var i = 0; i < this.selected.length; i++) {
-				await axios({
-					method: "POST",
-					url: this.graphql_url,
-					data: {
-						query: `
+          variables: {
+            event: this.event.id,
+            author: this.authorId
+          }
+        },
+        headers: this.HTTPheaders
+      })
+        .then(res => {
+          console.info(res);
+        })
+        .catch(err => {
+          console.error(err);
+        });
+      for (var i = 0; i < this.selected.length; i++) {
+        await axios({
+          method: "POST",
+          url: this.graphql_url,
+          data: {
+            query: `
               mutation insertEventMember($event:Int!,$member:Int!,$author:Int!){
                 insert_Event_Member(objects:{EventId:$event,MemberId:$member,AuthorId:$author}){
                   affected_rows
                 }
             }`,
-						variables: {
-							member: this.selected[i].id,
-							event: this.event.id,
-							author: this.authorId
-						}
-					},
-					headers: this.HTTPheaders
-				})
-					.then(res => {
-						console.info(res);
-					})
-					.catch(err => console.error(err));
-			}
-
-			this.successAlert = true;
-		}
-	}
+            variables: {
+              member: this.selected[i].id,
+              event: this.event.id,
+              author: this.authorId
+            }
+          },
+          headers: this.HTTPheaders
+        })
+          .then(res => {
+            console.info(res);
+          })
+          .catch(err => console.error(err));
+      }
+      this.successMessage = "Registered the Members Successfully!!";
+      this.successAlert = true;
+    }
+  }
 };
 </script>
 
